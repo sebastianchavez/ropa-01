@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento de Envío · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section class="bg-primary text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="uppercase tracking-widest text-sm text-accent mb-3">Sigue tu pedido</p>
+      <h1 class="font-serif text-4xl md:text-5xl mb-3">Seguimiento de Envío</h1>
+      <p class="text-gray-300 max-w-2xl mx-auto">Ingresa tu código y conoce el estado de tu compra.</p>
+    </div>
+  </section>
+
+  <section class="section-sm bg-cream">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Buscador -->
+      <div class="bg-white rounded-lg p-6 md:p-8 shadow-sm mb-6">
+        <form id="trackForm" class="flex flex-col md:flex-row gap-3">
+          <input type="text" id="trackInput" required placeholder="Ej: ATL-2026-0001" class="input flex-1">
+          <button type="submit" class="btn btn-primary">Rastrear pedido</button>
+        </form>
+        <p class="text-xs text-text-light mt-3">
+          💡 Tip: También puedes ver tus pedidos desde <a href="perfil.html" class="text-accent hover:underline">tu perfil</a>.
+        </p>
+      </div>
+
+      <!-- Resultado -->
+      <div id="trackResult"></div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('');
+    UI.mountFooter();
+    Cart.init();
+
+    // Búsqueda automática si viene ?id= en la URL
+    const initialId = UI.getQueryParam('id');
+    if (initialId) {
+      document.getElementById('trackInput').value = initialId;
+      trackOrder(initialId);
+    }
+
+    document.getElementById('trackForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('trackInput').value.trim().toUpperCase();
+      trackOrder(id);
+    });
+
+    function trackOrder(id) {
+      const result = document.getElementById('trackResult');
+      const order = Orders.getById(id);
+
+      if (!order) {
+        result.innerHTML = `
+          <div class="bg-white rounded-lg p-8 text-center">
+            <svg width="60" height="60" fill="none" stroke="#c1121f" stroke-width="1.5" viewBox="0 0 24 24" class="mx-auto mb-3">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+            </svg>
+            <h3 class="font-serif text-xl mb-2">Pedido no encontrado</h3>
+            <p class="text-text-light text-sm">Verifica el código e intenta nuevamente. Formato: ATL-AAAA-XXXX</p>
+          </div>
+        `;
+        return;
+      }
+
+      const flowIdx = ORDER_STATUS_FLOW.findIndex(s => s.key === order.status);
+      const flow = ORDER_STATUS_FLOW.map((step, i) => ({
+        ...step,
+        completed: i <= flowIdx && order.status !== 'cancelado',
+        active: i === flowIdx && order.status !== 'cancelado'
+      }));
+
+      result.innerHTML = `
+        <div class="bg-white rounded-lg overflow-hidden">
+          <div class="bg-primary text-white p-6 flex justify-between items-start flex-wrap gap-3">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-accent">Pedido</p>
+              <h2 class="font-serif text-2xl">${order.id}</h2>
+              <p class="text-sm text-gray-300 mt-1">${UI.formatDate(order.createdAt)}</p>
+            </div>
+            <span class="status-badge ${Orders.getStatusClass(order.status)}">${Orders.getStatusLabel(order.status)}</span>
+          </div>
+
+          <div class="p-6 md:p-8">
+            <h3 class="label">Estado actual</h3>
+            <div class="timeline mt-4 mb-6">
+              ${flow.map(step => `
+                <div class="timeline-step ${step.completed ? 'completed' : ''} ${step.active ? 'active' : ''}">
+                  <div class="timeline-dot">
+                    ${step.completed ? '<svg width="12" height="12" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>' : ''}
+                  </div>
+                  <div>
+                    <p class="font-medium">${step.label}</p>
+                    <p class="text-xs text-text-light">${step.description}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border">
+              <div>
+                <h4 class="label">Envío a</h4>
+                <p class="text-sm">${order.shipping.address}</p>
+                <p class="text-sm">${order.shipping.city}, ${order.shipping.region}</p>
+                <p class="text-xs text-text-light mt-2">${order.shipping.typeName}</p>
+              </div>
+              <div>
+                <h4 class="label">Resumen</h4>
+                <p class="text-sm">${order.items.length} producto${order.items.length === 1 ? '' : 's'}</p>
+                <p class="text-sm font-semibold">Total: ${UI.formatCLP(order.total)}</p>
+                <a href="detalle-pedido.html?id=${order.id}" class="text-xs text-accent hover:underline mt-2 inline-block">Ver detalle completo →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+
+</body>
+</html>

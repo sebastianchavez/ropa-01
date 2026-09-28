@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos · Atelier Boutique</title>
+  <meta name="description" content="Catálogo completo de moda boutique para mujer, hombre, niños y accesorios.">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <!-- HEADER -->
+  <section class="bg-primary text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="uppercase tracking-widest text-sm text-accent mb-3">Nuestra Colección</p>
+      <h1 class="font-serif text-4xl md:text-5xl mb-3">Catálogo</h1>
+      <p class="text-gray-300 max-w-2xl mx-auto">Explora todas nuestras piezas y encuentra tu próximo favorito.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO -->
+  <section class="section-sm bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <div class="flex items-center gap-2">
+          <button id="filterToggle" class="btn btn-outline btn-sm md:hidden">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+            Filtros
+          </button>
+          <span id="resultCount" class="text-sm text-text-light">16 productos</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-text-light hidden md:block">Ordenar:</label>
+          <select id="sortSelect" class="input py-2 text-sm w-auto">
+            <option value="featured">Destacados</option>
+            <option value="price-asc">Menor precio</option>
+            <option value="price-desc">Mayor precio</option>
+            <option value="rating">Mejor valorados</option>
+            <option value="new">Más nuevos</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+        <!-- SIDEBAR FILTROS -->
+        <aside id="sidebar" class="hidden md:block bg-white rounded-lg p-6 h-fit sticky top-32">
+          <h3 class="font-serif text-lg mb-4">Filtros</h3>
+
+          <!-- Categoría -->
+          <div class="mb-6">
+            <h4 class="label">Categoría</h4>
+            <div id="categoryFilters" class="space-y-2"></div>
+          </div>
+
+          <!-- Precio -->
+          <div class="mb-6">
+            <h4 class="label">Precio</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="price" value="all" checked class="price-radio accent-accent"> Todos
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="price" value="0-30000" class="price-radio accent-accent"> Hasta $30.000
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="price" value="30000-60000" class="price-radio accent-accent"> $30.000 - $60.000
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="price" value="60000-100000" class="price-radio accent-accent"> $60.000 - $100.000
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="price" value="100000+" class="price-radio accent-accent"> Más de $100.000
+              </label>
+            </div>
+          </div>
+
+          <!-- Talle -->
+          <div class="mb-6">
+            <h4 class="label">Talle</h4>
+            <div class="flex flex-wrap gap-2">
+              <button class="size-filter-btn size-btn selected" data-size="all">Todos</button>
+              <button class="size-filter-btn size-btn" data-size="XS">XS</button>
+              <button class="size-filter-btn size-btn" data-size="S">S</button>
+              <button class="size-filter-btn size-btn" data-size="M">M</button>
+              <button class="size-filter-btn size-btn" data-size="L">L</button>
+              <button class="size-filter-btn size-btn" data-size="XL">XL</button>
+            </div>
+          </div>
+
+          <button id="clearFilters" class="btn btn-outline btn-sm btn-block">Limpiar filtros</button>
+        </aside>
+
+        <!-- GRILLA PRODUCTOS -->
+        <div>
+          <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
+          <div id="emptyState" class="hidden text-center py-16 bg-white rounded-lg">
+            <p class="font-serif text-2xl mb-2">No encontramos productos</p>
+            <p class="text-text-light mb-4">Intenta ajustar los filtros</p>
+            <button id="emptyClearBtn" class="btn btn-outline">Ver todo el catálogo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('productos');
+    UI.mountFooter();
+    Cart.init();
+
+    // Estado de filtros
+    const state = {
+      category: UI.getQueryParam('cat') || 'all',
+      price: 'all',
+      size: 'all',
+      sort: 'featured'
+    };
+
+    // Render category filters
+    const catHTML = `
+      <label class="flex items-center gap-2 cursor-pointer text-sm">
+        <input type="radio" name="category" value="all" ${state.category === 'all' ? 'checked' : ''} class="cat-radio accent-accent"> Todas
+      </label>
+    ` + CATEGORIES.map(c => `
+      <label class="flex items-center gap-2 cursor-pointer text-sm">
+        <input type="radio" name="category" value="${c.id}" ${state.category === c.id ? 'checked' : ''} class="cat-radio accent-accent"> ${c.name}
+      </label>
+    `).join('');
+    document.getElementById('categoryFilters').innerHTML = catHTML;
+
+    // Render productos
+    function renderProducts() {
+      let filtered = PRODUCTS.slice();
+
+      // Categoría
+      if (state.category !== 'all') {
+        filtered = filtered.filter(p => p.category === state.category);
+      }
+
+      // Precio
+      if (state.price !== 'all') {
+        if (state.price === '100000+') {
+          filtered = filtered.filter(p => p.price >= 100000);
+        } else {
+          const [min, max] = state.price.split('-').map(Number);
+          filtered = filtered.filter(p => p.price >= min && p.price < max);
+        }
+      }
+
+      // Talle
+      if (state.size !== 'all') {
+        filtered = filtered.filter(p => p.sizes.includes(state.size));
+      }
+
+      // Orden
+      switch (state.sort) {
+        case 'price-asc': filtered.sort((a,b) => a.price - b.price); break;
+        case 'price-desc': filtered.sort((a,b) => b.price - a.price); break;
+        case 'rating': filtered.sort((a,b) => b.rating - a.rating); break;
+        case 'new': filtered.sort((a,b) => (b.isNew?1:0) - (a.isNew?1:0)); break;
+      }
+
+      // Render
+      const grid = document.getElementById('productsGrid');
+      const empty = document.getElementById('emptyState');
+      const count = document.getElementById('resultCount');
+
+      if (filtered.length === 0) {
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+      } else {
+        grid.classList.remove('hidden');
+        empty.classList.add('hidden');
+        grid.innerHTML = filtered.map(p => UI.productCardHTML(p)).join('');
+      }
+      count.textContent = filtered.length + (filtered.length === 1 ? ' producto' : ' productos');
+    }
+
+    // Listeners
+    document.querySelectorAll('.cat-radio').forEach(r => {
+      r.addEventListener('change', e => { state.category = e.target.value; renderProducts(); });
+    });
+    document.querySelectorAll('.price-radio').forEach(r => {
+      r.addEventListener('change', e => { state.price = e.target.value; renderProducts(); });
+    });
+    document.querySelectorAll('.size-filter-btn').forEach(b => {
+      b.addEventListener('click', e => {
+        document.querySelectorAll('.size-filter-btn').forEach(x => x.classList.remove('selected'));
+        e.target.classList.add('selected');
+        state.size = e.target.dataset.size;
+        renderProducts();
+      });
+    });
+    document.getElementById('sortSelect').addEventListener('change', e => { state.sort = e.target.value; renderProducts(); });
+
+    function clearAllFilters() {
+      state.category = 'all';
+      state.price = 'all';
+      state.size = 'all';
+      document.querySelectorAll('.cat-radio').forEach(r => r.checked = r.value === 'all');
+      document.querySelectorAll('.price-radio').forEach(r => r.checked = r.value === 'all');
+      document.querySelectorAll('.size-filter-btn').forEach(x => x.classList.remove('selected'));
+      document.querySelector('.size-filter-btn[data-size="all"]').classList.add('selected');
+      renderProducts();
+    }
+    document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+    document.getElementById('emptyClearBtn').addEventListener('click', clearAllFilters);
+
+    // Filtros mobile toggle
+    document.getElementById('filterToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    });
+
+    renderProducts();
+  </script>
+
+</body>
+</html>

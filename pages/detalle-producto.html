@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Producto · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="bg-cream py-6">
+    <div id="content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"></div>
+  </main>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('productos');
+    UI.mountFooter();
+    Cart.init();
+
+    const productId = UI.getQueryParam('id');
+    const product = PRODUCTS.find(p => p.id === productId);
+
+    if (!product) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h1 class="font-serif text-3xl mb-4">Producto no encontrado</h1>
+          <p class="text-text-light mb-6">El producto que buscas no existe o fue eliminado.</p>
+          <a href="productos.html" class="btn btn-primary">Ver catálogo</a>
+        </div>
+      `;
+    } else {
+      const cat = CATEGORIES.find(c => c.id === product.category);
+      const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+      const reviews = Reviews.getForProduct(product.id);
+      const dist = Reviews.getDistribution(product.id);
+      const totalReviews = reviews.length;
+
+      document.title = `${product.name} · Atelier Boutique`;
+
+      let selectedSize = product.sizes[0];
+      let selectedColor = product.colors[0];
+      let qty = 1;
+
+      function render() {
+        document.getElementById('content').innerHTML = `
+          <!-- Breadcrumb -->
+          <nav class="text-sm text-text-light mb-4 flex gap-2 flex-wrap">
+            <a href="../index.html" class="hover:text-accent">Inicio</a>
+            <span>/</span>
+            <a href="productos.html" class="hover:text-accent">Productos</a>
+            <span>/</span>
+            <a href="productos.html?cat=${product.category}" class="hover:text-accent">${cat.name}</a>
+            <span>/</span>
+            <span class="text-primary">${product.name}</span>
+          </nav>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 bg-white rounded-lg p-6 lg:p-10">
+
+            <!-- GALERÍA -->
+            <div>
+              <div class="aspect-square bg-cream-dark rounded-lg overflow-hidden mb-3">
+                <img id="mainImage" src="${product.images[0]}" alt="${product.name}" class="w-full h-full object-cover">
+              </div>
+              ${product.images.length > 1 ? `
+                <div class="flex gap-2">
+                  ${product.images.map((img, i) => `
+                    <button class="thumb-btn w-20 h-20 rounded border-2 ${i === 0 ? 'border-accent' : 'border-border'} overflow-hidden" data-img="${img}">
+                      <img src="${img}" alt="" class="w-full h-full object-cover">
+                    </button>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- INFO -->
+            <div>
+              <p class="text-xs uppercase tracking-widest text-accent mb-2">${cat.name}</p>
+              <h1 class="font-serif text-3xl md:text-4xl mb-3">${product.name}</h1>
+
+              <div class="flex items-center gap-3 mb-4">
+                ${UI.renderStars(product.rating, 16)}
+                <a href="#reviews" class="text-sm text-text-light hover:text-accent">(${product.reviewsCount} reseñas)</a>
+              </div>
+
+              <div class="flex items-baseline gap-3 mb-6">
+                <span class="text-3xl font-semibold">${UI.formatCLP(product.price)}</span>
+                ${product.oldPrice ? `<span class="text-lg text-text-light line-through">${UI.formatCLP(product.oldPrice)}</span>` : ''}
+              </div>
+
+              <p class="text-text-light leading-relaxed mb-6">${product.description}</p>
+
+              <!-- COLORES -->
+              <div class="mb-6">
+                <h3 class="label">Color: <span class="text-primary normal-case tracking-normal" id="colorName">${selectedColor.name}</span></h3>
+                <div class="flex gap-2">
+                  ${product.colors.map((c, i) => `
+                    <button class="color-swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color='${JSON.stringify(c)}' title="${c.name}"></button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- TALLES -->
+              <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="label mb-0">Talle</h3>
+                  <button class="text-xs text-accent hover:underline" onclick="alert('Guía de talles próximamente.')">Guía de talles</button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  ${product.sizes.map((s, i) => `
+                    <button class="size-btn ${i === 0 ? 'selected' : ''}" data-size="${s}">${s}</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- CANTIDAD + AGREGAR -->
+              <div class="flex flex-wrap gap-3 mb-6">
+                <div class="qty-selector">
+                  <button class="qty-btn" id="qtyMinus">−</button>
+                  <input type="text" class="qty-input" id="qtyInput" value="1" readonly>
+                  <button class="qty-btn" id="qtyPlus">+</button>
+                </div>
+                <button id="addToCart" class="btn btn-primary btn-lg flex-1 sm:flex-none">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg>
+                  Agregar al carrito
+                </button>
+              </div>
+
+              <div class="text-sm text-text-light space-y-1 border-t border-border pt-4">
+                <p>✓ Stock disponible: ${product.stock} unidades</p>
+                <p>✓ Envío gratis sobre $50.000</p>
+                <p>✓ Primer cambio de talla sin costo</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABS -->
+          <div class="bg-white rounded-lg p-6 lg:p-10 mt-6">
+            <div class="tabs-nav">
+              <button class="tab-btn active" data-tab="desc">Descripción</button>
+              <button class="tab-btn" data-tab="envio">Envío & Devoluciones</button>
+              <button class="tab-btn" data-tab="reviews">Reseñas (${totalReviews + product.reviewsCount})</button>
+            </div>
+            <div class="tab-panel active" data-panel="desc">
+              <p class="text-text-light leading-relaxed mb-4">${product.description}</p>
+              <ul class="list-disc pl-5 space-y-1 text-text-light">
+                <li>Materiales de primera calidad</li>
+                <li>Diseño exclusivo Atelier</li>
+                <li>Confección ética y sostenible</li>
+                <li>Tallas: ${product.sizes.join(', ')}</li>
+              </ul>
+            </div>
+            <div class="tab-panel" data-panel="envio">
+              <h3 class="font-serif text-xl mb-3">Política de Envíos</h3>
+              <p class="text-text-light mb-3">Realizamos envíos a todo Chile. Los pedidos dentro de Santiago llegan en 24-48 horas hábiles. A regiones, el plazo es de 3-5 días hábiles.</p>
+              <h3 class="font-serif text-xl mb-3 mt-6">Cambios y Devoluciones</h3>
+              <p class="text-text-light">Tienes 30 días para cambiar o devolver tu compra. El primer cambio de talla es gratuito. El producto debe estar sin uso, con etiquetas y empaque original.</p>
+            </div>
+            <div class="tab-panel" data-panel="reviews" id="reviews">
+              ${renderReviewsTab(product, reviews, dist, totalReviews)}
+            </div>
+          </div>
+
+          <!-- RELACIONADOS -->
+          ${related.length > 0 ? `
+            <section class="mt-12">
+              <h2 class="font-serif text-2xl mb-6 text-center">También te podría interesar</h2>
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                ${related.map(p => UI.productCardHTML(p)).join('')}
+              </div>
+            </section>
+          ` : ''}
+        `;
+        attachListeners();
+      }
+
+      function renderReviewsTab(product, reviews, dist, totalReviews) {
+        const total = totalReviews;
+        return `
+          <div class="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
+            <div>
+              <div class="text-center mb-6">
+                <div class="text-5xl font-serif font-semibold">${product.rating.toFixed(1)}</div>
+                <div class="my-2">${UI.renderStars(product.rating, 20)}</div>
+                <div class="text-sm text-text-light">${total} reseñas</div>
+              </div>
+              <div class="space-y-2">
+                ${[5,4,3,2,1].map(s => {
+                  const count = dist[s];
+                  const pct = total > 0 ? (count / total) * 100 : 0;
+                  return `
+                    <div class="flex items-center gap-2 text-sm">
+                      <span class="w-3">${s}</span>
+                      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      <div class="flex-1 h-2 bg-border rounded overflow-hidden">
+                        <div class="h-full bg-accent" style="width: ${pct}%"></div>
+                      </div>
+                      <span class="w-6 text-right text-text-light">${count}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              ${canReview(product.id) ? `
+                <a href="resena.html?productId=${product.id}" class="btn btn-primary btn-block mt-6">Escribir reseña</a>
+              ` : `
+                <div class="mt-6 p-3 bg-cream rounded text-xs text-text-light text-center">
+                  ${!Auth.getCurrentUser() ? 'Inicia sesión para reseñar' : 'Compra este producto para poder reseñarlo'}
+                </div>
+              `}
+            </div>
+            <div class="space-y-4">
+              ${reviews.length === 0 ? `
+                <div class="text-center py-8 text-text-light">
+                  <p class="font-serif text-xl mb-2 text-primary">Aún no hay reseñas</p>
+                  <p>Sé el primero en opinar sobre este producto.</p>
+                </div>
+              ` : reviews.map(r => `
+                <div class="border-b border-border pb-4">
+                  <div class="flex justify-between items-start mb-2">
+                    <div>
+                      <div class="font-medium">${r.userName}</div>
+                      <div class="text-xs text-text-light">${UI.formatDate(r.createdAt)}</div>
+                    </div>
+                    <div>${UI.renderStars(r.rating, 14)}</div>
+                  </div>
+                  <p class="text-text-light">${r.comment}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      function canReview(productId) {
+        const user = Auth.getCurrentUser();
+        if (!user) return false;
+        if (Reviews.hasReviewed(productId)) return false;
+        return Reviews.userHasPurchased(productId);
+      }
+
+      function attachListeners() {
+        // Galería
+        document.querySelectorAll('.thumb-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.thumb-btn').forEach(b => b.classList.replace('border-accent','border-border'));
+            btn.classList.replace('border-border','border-accent');
+            document.getElementById('mainImage').src = btn.dataset.img;
+          });
+        });
+
+        // Colores
+        document.querySelectorAll('.color-swatch').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedColor = JSON.parse(btn.dataset.color);
+            document.getElementById('colorName').textContent = selectedColor.name;
+          });
+        });
+
+        // Talles
+        document.querySelectorAll('.size-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedSize = btn.dataset.size;
+          });
+        });
+
+        // Cantidad
+        const qtyInput = document.getElementById('qtyInput');
+        document.getElementById('qtyMinus').addEventListener('click', () => {
+          if (qty > 1) { qty--; qtyInput.value = qty; }
+        });
+        document.getElementById('qtyPlus').addEventListener('click', () => {
+          if (qty < product.stock) { qty++; qtyInput.value = qty; }
+        });
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelector(`[data-panel="${btn.dataset.tab}"]`).classList.add('active');
+            if (btn.dataset.tab === 'reviews') {
+              setTimeout(() => document.getElementById('reviews').scrollIntoView({behavior:'smooth', block:'start'}), 100);
+            }
+          });
+        });
+
+        // Add to cart
+        document.getElementById('addToCart').addEventListener('click', () => {
+          const result = Cart.add(product.id, qty, selectedSize, selectedColor.name);
+          if (result.success) {
+            UI.toast(`${product.name} agregado al carrito`, 'success');
+          }
+        });
+      }
+
+      render();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section class="bg-primary text-white py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="font-serif text-3xl md:text-4xl">Mi Perfil</h1>
+    </div>
+  </section>
+
+  <section class="section-sm bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div id="content"></div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('');
+    UI.mountFooter();
+    Cart.init();
+
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      UI.toast("Debes iniciar sesión", "info");
+      setTimeout(() => location.href = "login.html", 700);
+    } else {
+      // Verificar sección activa por hash
+      const initialSection = window.location.hash === '#pedidos' ? 'pedidos' : 'datos';
+      let activeSection = initialSection;
+      let editing = false;
+
+      function render() {
+        const orders = Orders.getUserOrders().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        document.getElementById('content').innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+            <!-- SIDEBAR -->
+            <aside class="bg-white rounded-lg p-4 h-fit">
+              <div class="text-center pb-4 border-b border-border mb-4">
+                <div class="w-16 h-16 mx-auto rounded-full bg-accent text-white flex items-center justify-center font-serif text-2xl mb-2">
+                  ${user.name.charAt(0).toUpperCase()}
+                </div>
+                <p class="font-medium">${user.name}</p>
+                <p class="text-xs text-text-light">${user.email}</p>
+              </div>
+              <nav class="space-y-1">
+                <button data-section="datos" class="profile-tab w-full text-left px-3 py-2 rounded ${activeSection === 'datos' ? 'bg-accent/10 text-accent font-medium' : 'hover:bg-cream'}">
+                  Mis datos
+                </button>
+                <button data-section="pedidos" class="profile-tab w-full text-left px-3 py-2 rounded ${activeSection === 'pedidos' ? 'bg-accent/10 text-accent font-medium' : 'hover:bg-cream'}">
+                  Mis pedidos
+                  ${orders.length > 0 ? `<span class="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">${orders.length}</span>` : ''}
+                </button>
+                <a href="../index.html" class="block px-3 py-2 rounded hover:bg-cream text-sm">
+                  Seguir comprando
+                </a>
+                <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded text-error hover:bg-cream text-sm">
+                  Cerrar sesión
+                </button>
+              </nav>
+            </aside>
+
+            <!-- CONTENIDO -->
+            <div id="sectionContent">
+              ${activeSection === 'datos' ? renderDatos() : renderPedidos(orders)}
+            </div>
+          </div>
+        `;
+
+        // Listeners
+        document.querySelectorAll('.profile-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            activeSection = btn.dataset.section;
+            editing = false;
+            render();
+          });
+        });
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          Auth.logout();
+          UI.toast("Sesión cerrada", "info");
+          setTimeout(() => location.href = "../index.html", 700);
+        });
+
+        if (activeSection === 'datos') {
+          const editBtn = document.getElementById('editBtn');
+          if (editBtn) {
+            editBtn.addEventListener('click', () => { editing = !editing; render(); });
+          }
+          const profileForm = document.getElementById('profileForm');
+          if (profileForm) {
+            profileForm.addEventListener('submit', handleProfileUpdate);
+          }
+        }
+      }
+
+      function renderDatos() {
+        return `
+          <div class="bg-white rounded-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="font-serif text-2xl">Mis datos personales</h2>
+              <button id="editBtn" class="btn btn-outline btn-sm">${editing ? 'Cancelar' : 'Editar'}</button>
+            </div>
+            <form id="profileForm">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="label">Nombre completo</label>
+                  <input type="text" name="name" class="input" value="${user.name}" ${!editing ? 'disabled' : ''}>
+                </div>
+                <div class="form-group">
+                  <label class="label">Email</label>
+                  <input type="email" name="email" class="input" value="${user.email}" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="label">Teléfono</label>
+                  <input type="tel" name="phone" class="input" value="${user.phone || ''}" ${!editing ? 'disabled' : ''}>
+                </div>
+                <div class="form-group md:col-span-2">
+                  <label class="label">Dirección</label>
+                  <input type="text" name="street" class="input" value="${user.address?.street || ''}" ${!editing ? 'disabled' : ''}>
+                </div>
+                <div class="form-group">
+                  <label class="label">Ciudad</label>
+                  <input type="text" name="city" class="input" value="${user.address?.city || ''}" ${!editing ? 'disabled' : ''}>
+                </div>
+                <div class="form-group">
+                  <label class="label">Región</label>
+                  <input type="text" name="region" class="input" value="${user.address?.region || ''}" ${!editing ? 'disabled' : ''}>
+                </div>
+                <div class="form-group">
+                  <label class="label">Código postal</label>
+                  <input type="text" name="zip" class="input" value="${user.address?.zip || ''}" ${!editing ? 'disabled' : ''}>
+                </div>
+              </div>
+              ${editing ? `
+                <div class="flex gap-3 mt-6">
+                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                  <button type="button" id="cancelBtn" class="btn btn-outline">Cancelar</button>
+                </div>
+              ` : ''}
+            </form>
+          </div>
+        `;
+      }
+
+      function renderPedidos(orders) {
+        if (orders.length === 0) {
+          return `
+            <div class="bg-white rounded-lg p-12 text-center">
+              <svg width="60" height="60" fill="none" stroke="#c9a961" stroke-width="1.5" viewBox="0 0 24 24" class="mx-auto mb-4">
+                <path d="M16 11V7a4 4 0 0 0-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+              <h2 class="font-serif text-2xl mb-2">Aún no tienes pedidos</h2>
+              <p class="text-text-light mb-6">Cuando hagas tu primera compra, aparecerá acá.</p>
+              <a href="productos.html" class="btn btn-primary">Explorar catálogo</a>
+            </div>
+          `;
+        }
+        return `
+          <div class="bg-white rounded-lg overflow-hidden">
+            <div class="p-6 border-b border-border">
+              <h2 class="font-serif text-2xl">Mis Pedidos</h2>
+              <p class="text-sm text-text-light mt-1">${orders.length} pedido${orders.length === 1 ? '' : 's'} en total</p>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>N° Pedido</th>
+                    <th>Fecha</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${orders.map(o => `
+                    <tr>
+                      <td class="font-medium">${o.id}</td>
+                      <td>${UI.formatDateShort(o.createdAt)}</td>
+                      <td>${o.items.length} producto${o.items.length === 1 ? '' : 's'}</td>
+                      <td class="font-semibold">${UI.formatCLP(o.total)}</td>
+                      <td>
+                        <span class="status-badge ${Orders.getStatusClass(o.status)}">${Orders.getStatusLabel(o.status)}</span>
+                      </td>
+                      <td>
+                        <a href="detalle-pedido.html?id=${o.id}" class="text-accent hover:underline text-sm font-medium">Ver detalle →</a>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function handleProfileUpdate(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+          name: form.name.value,
+          phone: form.phone.value,
+          address: {
+            street: form.street.value,
+            city: form.city.value,
+            region: form.region.value,
+            zip: form.zip.value
+          }
+        };
+        const result = Auth.updateProfile(data);
+        if (result.success) {
+          UI.toast("Datos actualizados correctamente", "success");
+          editing = false;
+          render();
+        }
+      }
+
+      render();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Compra Confirmada! · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body class="bg-cream">
+
+  <div id="navbar-root"></div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div id="content"></div>
+  </main>
+
+  <div id="footer-root" class="no-print"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('');
+    UI.mountFooter();
+    Cart.init();
+
+    const orderId = sessionStorage.getItem("lastOrderId");
+    const order = orderId ? Orders.getById(orderId) : null;
+
+    if (!order) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h1 class="font-serif text-3xl mb-3">No hay pedidos recientes</h1>
+          <p class="text-text-light mb-6">No encontramos un pedido para confirmar.</p>
+          <a href="productos.html" class="btn btn-primary">Ir al catálogo</a>
+        </div>
+      `;
+    } else {
+      document.getElementById('content').innerHTML = `
+        <!-- Vista normal / pantalla -->
+        <div class="no-print">
+          <!-- Icon éxito -->
+          <div class="bg-white rounded-lg p-8 text-center shadow-sm mb-6">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+              <svg width="48" height="48" fill="none" stroke="#2d6a4f" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5"/>
+              </svg>
+            </div>
+            <h1 class="font-serif text-3xl md:text-4xl mb-2">¡Gracias por tu compra!</h1>
+            <p class="text-text-light mb-4">Tu pedido ha sido confirmado y está siendo preparado.</p>
+            <p class="text-sm">Número de pedido: <strong class="text-accent">${order.id}</strong></p>
+          </div>
+
+          <!-- Resumen -->
+          <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+            <h2 class="font-serif text-xl mb-4">Resumen de tu compra</h2>
+            <div class="space-y-3 pb-4 border-b border-border">
+              ${order.items.map(item => `
+                <div class="flex gap-3 items-center">
+                  <img src="${item.image}" alt="${item.name}" class="w-14 h-16 object-cover rounded">
+                  <div class="flex-1 text-sm">
+                    <p class="font-medium">${item.name}</p>
+                    <p class="text-xs text-text-light">${item.color} · Talle ${item.size} · Cantidad ${item.qty}</p>
+                  </div>
+                  <div class="text-sm font-medium">${UI.formatCLP(item.price * item.qty)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 text-sm">
+              <div>
+                <h4 class="label">Envío a</h4>
+                <p>${order.shipping.address}</p>
+                <p>${order.shipping.city}, ${order.shipping.region}</p>
+                ${order.shipping.zip ? `<p>CP: ${order.shipping.zip}</p>` : ''}
+                <p class="mt-2 text-text-light">${order.shipping.typeName}</p>
+              </div>
+              <div>
+                <h4 class="label">Pago</h4>
+                <p>${order.payment.methodName}</p>
+                ${order.payment.last4 ? `<p class="text-text-light">Terminada en ****${order.payment.last4}</p>` : ''}
+                <div class="mt-3 space-y-1">
+                  <div class="flex justify-between"><span class="text-text-light">Subtotal:</span><span>${UI.formatCLP(order.subtotal)}</span></div>
+                  <div class="flex justify-between"><span class="text-text-light">Envío:</span><span>${order.shippingCost === 0 ? 'GRATIS' : UI.formatCLP(order.shippingCost)}</span></div>
+                  <div class="flex justify-between font-semibold pt-2 border-t border-border"><span>Total:</span><span>${UI.formatCLP(order.total)}</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6 text-sm">
+            <p class="font-medium mb-1">📦 ¿Qué sigue ahora?</p>
+            <p class="text-text-light">Te enviaremos un email con el detalle y seguimiento de tu pedido. Puedes revisar el estado en cualquier momento desde tu perfil.</p>
+          </div>
+
+          <!-- BOTONES FINALES -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="window.print()" class="btn btn-outline btn-lg">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+              Imprimir Comprobante
+            </button>
+            <a href="perfil.html" class="btn btn-primary btn-lg">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+              Ver Historial de Pedidos
+            </a>
+          </div>
+
+          <div class="text-center mt-8">
+            <a href="../index.html" class="text-sm text-accent hover:underline">← Volver a la tienda</a>
+          </div>
+        </div>
+
+        <!-- Vista IMPRESA (comprobante) -->
+        <div class="print-only">
+          <div class="receipt">
+            <div style="text-align:center; border-bottom:2px solid #c9a961; padding-bottom:1rem; margin-bottom:2rem;">
+              <h1 style="font-family:'Playfair Display',serif; margin:0;">Atelier Boutique</h1>
+              <p style="margin:0.5rem 0; color:#666;">${STORE.address}</p>
+              <p style="margin:0; color:#666;">${STORE.phone} · ${STORE.email}</p>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif; margin-bottom:0.5rem;">Comprobante de Compra</h2>
+            <p style="color:#666; margin-bottom:1.5rem;">Pedido: <strong>${order.id}</strong> · Fecha: ${UI.formatDate(order.createdAt)}</p>
+
+            <table style="width:100%; border-collapse:collapse; margin-bottom:1.5rem;">
+              <thead>
+                <tr style="background:#faf7f2;">
+                  <th style="text-align:left; padding:0.5rem; border-bottom:1px solid #ddd;">Producto</th>
+                  <th style="text-align:center; padding:0.5rem; border-bottom:1px solid #ddd;">Cant.</th>
+                  <th style="text-align:right; padding:0.5rem; border-bottom:1px solid #ddd;">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items.map(item => `
+                  <tr>
+                    <td style="padding:0.5rem; border-bottom:1px solid #eee;">
+                      <strong>${item.name}</strong><br>
+                      <small style="color:#888;">${item.color} · Talle ${item.size}</small>
+                    </td>
+                    <td style="padding:0.5rem; border-bottom:1px solid #eee; text-align:center;">${item.qty}</td>
+                    <td style="padding:0.5rem; border-bottom:1px solid #eee; text-align:right;">${UI.formatCLP(item.price * item.qty)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem;">
+              <div>
+                <h3 style="margin:0 0 0.5rem; font-size:1rem;">Dirección de Envío</h3>
+                <p style="margin:0;">${order.shipping.address}</p>
+                <p style="margin:0;">${order.shipping.city}, ${order.shipping.region}</p>
+                ${order.shipping.zip ? `<p style="margin:0;">CP: ${order.shipping.zip}</p>` : ''}
+              </div>
+              <div>
+                <h3 style="margin:0 0 0.5rem; font-size:1rem;">Pago</h3>
+                <p style="margin:0;">${order.payment.methodName}</p>
+                ${order.payment.last4 ? `<p style="margin:0;">**** **** **** ${order.payment.last4}</p>` : ''}
+              </div>
+            </div>
+
+            <div style="border-top:2px solid #c9a961; padding-top:1rem;">
+              <div style="display:flex; justify-content:space-between; padding:0.25rem 0;"><span>Subtotal:</span><span>${UI.formatCLP(order.subtotal)}</span></div>
+              <div style="display:flex; justify-content:space-between; padding:0.25rem 0;"><span>Envío (${order.shipping.typeName}):</span><span>${order.shippingCost === 0 ? 'GRATIS' : UI.formatCLP(order.shippingCost)}</span></div>
+              <div style="display:flex; justify-content:space-between; padding:0.5rem 0; font-size:1.25rem; font-weight:bold; border-top:1px solid #ddd; margin-top:0.5rem;"><span>TOTAL:</span><span>${UI.formatCLP(order.total)}</span></div>
+            </div>
+
+            <p style="text-align:center; color:#888; margin-top:2rem; font-size:0.85rem;">
+              Gracias por tu compra. · ${STORE.name} · ${new Date().getFullYear()}
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Limpiar sessionStorage para evitar reutilización
+      sessionStorage.removeItem("lastOrderId");
+    }
+  </script>
+
+</body>
+</html>

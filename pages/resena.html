@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escribir Reseña · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <main class="bg-cream py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div id="content"></div>
+    </div>
+  </main>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('');
+    UI.mountFooter();
+    Cart.init();
+
+    const productId = UI.getQueryParam('productId');
+    const product = productId ? PRODUCTS.find(p => p.id === productId) : null;
+    const user = Auth.getCurrentUser();
+
+    if (!product) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h1 class="font-serif text-3xl mb-3">Producto no encontrado</h1>
+          <a href="productos.html" class="btn btn-primary">Ver catálogo</a>
+        </div>
+      `;
+    } else if (!user) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h1 class="font-serif text-3xl mb-3">Inicia sesión para reseñar</h1>
+          <p class="text-text-light mb-6">Necesitas tener una cuenta y haber comprado el producto para dejar una reseña.</p>
+          <a href="login.html?next=resena.html?productId=${product.id}" class="btn btn-primary">Iniciar sesión</a>
+        </div>
+      `;
+    } else if (Reviews.hasReviewed(product.id)) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <div class="text-5xl mb-4">✓</div>
+          <h1 class="font-serif text-3xl mb-3">Ya has reseñado este producto</h1>
+          <p class="text-text-light mb-6">Gracias por tu opinión.</p>
+          <a href="detalle-producto.html?id=${product.id}" class="btn btn-primary">Ver producto</a>
+        </div>
+      `;
+    } else if (!Reviews.userHasPurchased(product.id)) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h1 class="font-serif text-3xl mb-3">Aún no puedes reseñar este producto</h1>
+          <p class="text-text-light mb-6">Solo puedes dejar una reseña si has comprado este producto.</p>
+          <div class="flex gap-3 justify-center">
+            <a href="detalle-producto.html?id=${product.id}" class="btn btn-outline">Ver producto</a>
+            <a href="productos.html" class="btn btn-primary">Explorar catálogo</a>
+          </div>
+        </div>
+      `;
+    } else {
+      let currentRating = 0;
+      let hoverRating = 0;
+
+      function render() {
+        document.getElementById('content').innerHTML = `
+          <a href="detalle-producto.html?id=${product.id}" class="text-sm text-accent hover:underline mb-4 inline-block">← Volver al producto</a>
+
+          <div class="bg-white rounded-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-primary text-white p-6 flex items-center gap-4">
+              <img src="${product.images[0]}" alt="${product.name}" class="w-20 h-20 object-cover rounded">
+              <div>
+                <p class="text-xs uppercase tracking-widest text-accent">Escribir reseña</p>
+                <h1 class="font-serif text-xl">${product.name}</h1>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form id="reviewForm" class="p-6 md:p-8">
+              <h2 class="font-serif text-2xl mb-2">¿Qué te pareció?</h2>
+              <p class="text-text-light text-sm mb-6">Tu opinión ayuda a otros compradores.</p>
+
+              <!-- Estrellas -->
+              <div class="form-group text-center py-6 bg-cream rounded-lg">
+                <label class="label mb-3">Calificación</label>
+                <div id="starInput" class="flex justify-center gap-2">
+                  ${[1,2,3,4,5].map(n => `
+                    <button type="button" class="star-input" data-rating="${n}">★</button>
+                  `).join('')}
+                </div>
+                <p id="ratingLabel" class="text-sm text-text-light mt-2 h-5">Selecciona una calificación</p>
+              </div>
+
+              <!-- Comentario -->
+              <div class="form-group mt-6">
+                <label class="label" for="comment">Tu opinión</label>
+                <textarea id="comment" name="comment" required minlength="10" maxlength="500" class="input" rows="6" placeholder="Cuéntanos sobre tu experiencia con el producto: calidad, tallaje, atención, etc."></textarea>
+                <p class="text-xs text-text-light mt-1">Mínimo 10 caracteres. Sé respetuoso y constructivo.</p>
+              </div>
+
+              <!-- Submit -->
+              <div class="flex flex-col-reverse md:flex-row gap-3 mt-6">
+                <a href="detalle-producto.html?id=${product.id}" class="btn btn-outline">Cancelar</a>
+                <button type="submit" class="btn btn-primary flex-1">Publicar reseña</button>
+              </div>
+            </form>
+          </div>
+        `;
+        attachListeners();
+      }
+
+      function attachListeners() {
+        const stars = document.querySelectorAll('.star-input');
+        const label = document.getElementById('ratingLabel');
+        const labels = ['', 'Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
+
+        function updateStars(value, hover = false) {
+          const v = hover ? hoverRating : value;
+          stars.forEach((s, i) => {
+            if (i < v) s.classList.add('active');
+            else s.classList.remove('active');
+          });
+          label.textContent = v > 0 ? (hover ? labels[v] + ' (click para confirmar)' : labels[v]) : 'Selecciona una calificación';
+        }
+
+        stars.forEach((star, idx) => {
+          star.addEventListener('mouseenter', () => {
+            hoverRating = idx + 1;
+            updateStars(0, true);
+          });
+          star.addEventListener('mouseleave', () => {
+            hoverRating = 0;
+            updateStars(currentRating);
+          });
+          star.addEventListener('click', () => {
+            currentRating = idx + 1;
+            updateStars(currentRating);
+          });
+        });
+
+        document.getElementById('reviewForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (currentRating === 0) {
+            UI.toast("Selecciona una calificación con estrellas", "error");
+            return;
+          }
+          const comment = document.getElementById('comment').value;
+          const result = Reviews.add({
+            productId: product.id,
+            rating: currentRating,
+            comment
+          });
+          if (result.success) {
+            UI.toast("¡Gracias por tu reseña!", "success");
+            setTimeout(() => location.href = "detalle-producto.html?id=" + product.id, 1200);
+          } else {
+            UI.toast(result.error, "error");
+          }
+        });
+      }
+
+      render();
+    }
+  </script>
+
+</body>
+</html>

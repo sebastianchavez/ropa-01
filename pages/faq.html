@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preguntas Frecuentes · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section class="bg-primary text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="uppercase tracking-widest text-sm text-accent mb-3">Centro de Ayuda</p>
+      <h1 class="font-serif text-4xl md:text-5xl mb-3">Preguntas Frecuentes</h1>
+      <p class="text-gray-300 max-w-2xl mx-auto">Encuentra respuestas rápidas a las consultas más comunes.</p>
+    </div>
+  </section>
+
+  <section class="section-sm bg-cream">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Buscador -->
+      <div class="mb-8">
+        <div class="relative">
+          <input type="text" id="faqSearch" placeholder="Buscar pregunta..." class="input pl-12">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-text-light" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+      </div>
+
+      <!-- Categorías rápidas -->
+      <div class="flex flex-wrap gap-2 mb-8">
+        <button class="faq-cat-btn btn btn-outline btn-sm selected" data-cat="all">Todas</button>
+        <button class="faq-cat-btn btn btn-outline btn-sm" data-cat="envios">Envíos</button>
+        <button class="faq-cat-btn btn btn-outline btn-sm" data-cat="pagos">Pagos</button>
+        <button class="faq-cat-btn btn btn-outline btn-sm" data-cat="devoluciones">Devoluciones</button>
+        <button class="faq-cat-btn btn btn-outline btn-sm" data-cat="producto">Producto</button>
+      </div>
+
+      <!-- Lista FAQs -->
+      <div id="faqList" class="bg-white rounded-lg p-6"></div>
+
+      <!-- Contacto CTA -->
+      <div class="bg-accent/10 border border-accent/30 rounded-lg p-6 mt-8 text-center">
+        <h3 class="font-serif text-xl mb-2">¿No encuentras lo que buscas?</h3>
+        <p class="text-sm text-text-light mb-4">Nuestro equipo está disponible para ayudarte.</p>
+        <a href="contacto.html" class="btn btn-primary">Contáctanos</a>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('faq');
+    UI.mountFooter();
+    Cart.init();
+
+    // Categorías extraídas según palabras clave
+    function getCategory(question) {
+      const q = question.toLowerCase();
+      if (q.includes('envío') || q.includes('demora') || q.includes('despacho') || q.includes('internacional') || q.includes('tienda')) return 'envios';
+      if (q.includes('pago') || q.includes('tarjeta') || q.includes('webpay') || q.includes('transferencia')) return 'pagos';
+      if (q.includes('devolu') || q.includes('cambio') || q.includes('talla')) return 'devoluciones';
+      if (q.includes('talla') || q.includes('mayor') || q.includes('volumen')) return 'producto';
+      return 'producto';
+    }
+
+    const faqsWithCat = FAQS.map((f, i) => ({ ...f, cat: getCategory(f.question) }));
+    let currentCat = 'all';
+    let searchTerm = '';
+
+    function render() {
+      let filtered = faqsWithCat.slice();
+      if (currentCat !== 'all') filtered = filtered.filter(f => f.cat === currentCat);
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(f =>
+          f.question.toLowerCase().includes(term) || f.answer.toLowerCase().includes(term)
+        );
+      }
+
+      const container = document.getElementById('faqList');
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-center text-text-light py-8">No se encontraron preguntas que coincidan con tu búsqueda.</p>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((f, i) => `
+        <div class="accordion-item" data-id="${i}">
+          <button class="accordion-trigger">
+            <span>${f.question}</span>
+            <svg class="accordion-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <div class="accordion-content">
+            <p class="accordion-body">${f.answer}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Listeners de acordeón
+      container.querySelectorAll('.accordion-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+          const item = trigger.parentElement;
+          item.classList.toggle('open');
+        });
+      });
+    }
+
+    document.querySelectorAll('.faq-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        currentCat = btn.dataset.cat;
+        render();
+      });
+    });
+
+    document.getElementById('faqSearch').addEventListener('input', (e) => {
+      searchTerm = e.target.value;
+      render();
+    });
+
+    render();
+  </script>
+
+</body>
+</html>

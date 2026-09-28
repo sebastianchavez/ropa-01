@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section class="bg-primary text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="uppercase tracking-widest text-sm text-accent mb-3">Estamos para ayudarte</p>
+      <h1 class="font-serif text-4xl md:text-5xl mb-3">Contacto</h1>
+      <p class="text-gray-300 max-w-2xl mx-auto">Escríbenos, visítanos o síguenos en redes. Respondemos en menos de 24 horas.</p>
+    </div>
+  </section>
+
+  <section class="section-sm bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- FORMULARIO -->
+        <div class="bg-white rounded-lg p-6 md:p-8">
+          <h2 class="font-serif text-2xl mb-2">Envíanos un mensaje</h2>
+          <p class="text-text-light text-sm mb-6">Completa el formulario y te responderemos a la brevedad.</p>
+
+          <form id="contactForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="label" for="name">Nombre *</label>
+                <input type="text" id="name" name="name" required class="input" placeholder="Tu nombre">
+              </div>
+              <div class="form-group">
+                <label class="label" for="email">Email *</label>
+                <input type="email" id="email" name="email" required class="input" placeholder="tu@email.com">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="label" for="phone">Teléfono</label>
+                <input type="tel" id="phone" name="phone" class="input" placeholder="+56 9 XXXX XXXX">
+              </div>
+              <div class="form-group">
+                <label class="label" for="subject">Asunto *</label>
+                <select id="subject" name="subject" required class="input">
+                  <option value="">Selecciona un asunto</option>
+                  <option value="consulta">Consulta sobre producto</option>
+                  <option value="pedido">Estado de mi pedido</option>
+                  <option value="devolucion">Cambio o devolución</option>
+                  <option value="mayoreo">Ventas por mayor</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="label" for="message">Mensaje *</label>
+              <textarea id="message" name="message" required minlength="10" class="input" rows="5" placeholder="Cuéntanos en qué podemos ayudarte..."></textarea>
+            </div>
+            <div class="flex items-start">
+              <input type="checkbox" id="accept" required class="accent-accent mt-1">
+              <label for="accept" class="ml-2 text-sm text-text-light cursor-pointer">
+                Acepto la <a href="politicas-privacidad.html" target="_blank" class="text-accent hover:underline">política de privacidad</a>.
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Enviar mensaje</button>
+          </form>
+        </div>
+
+        <!-- INFO -->
+        <div class="space-y-6">
+          <!-- Horarios -->
+          <div class="bg-white rounded-lg p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" fill="none" stroke="#c9a961" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <h2 class="font-serif text-xl">Horario de Atención</h2>
+            </div>
+            <div id="scheduleContainer" class="space-y-2 text-sm"></div>
+          </div>
+
+          <!-- Ubicación -->
+          <div class="bg-white rounded-lg p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" fill="none" stroke="#c9a961" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <h2 class="font-serif text-xl">Visítanos</h2>
+            </div>
+            <div id="locationInfo"></div>
+            <div class="mt-4 rounded-lg overflow-hidden h-48 bg-cream-dark">
+              <iframe
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-70.6272%2C-33.4120%2C-70.5672%2C-33.3820&layer=mapnik&marker=-33.3970%2C-70.5972"
+                width="100%" height="100%" style="border:0;" loading="lazy" title="Ubicación de la tienda"></iframe>
+            </div>
+            <div class="mt-2 text-center">
+              <a href="https://www.openstreetmap.org/?mlat=-33.3970&mlon=-70.5972#map=14/-33.3970/-70.5972" target="_blank" class="text-xs text-accent hover:underline">Ver mapa más grande →</a>
+            </div>
+          </div>
+
+          <!-- Contacto directo -->
+          <div class="bg-white rounded-lg p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" fill="none" stroke="#c9a961" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <h2 class="font-serif text-xl">Contacto Directo</h2>
+            </div>
+            <div class="space-y-2 text-sm">
+              <p class="flex items-center gap-2">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-accent"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span id="phoneInfo"></span>
+              </p>
+              <p class="flex items-center gap-2">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-accent"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></svg>
+                <span id="emailInfo"></span>
+              </p>
+              <p class="flex items-center gap-2">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="text-accent"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.7 1-.9 1.1-.2.2-.3.2-.6.1-.9-.4-1.7-.8-2.5-1.7-.6-.7-1.1-1.5-1.4-2.4-.1-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.7-1.6-.9-2.2-.2-.6-.4-.5-.6-.5h-.5c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.5-.4zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 4.9L2 22l5.3-1.4c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+                <span id="whatsappInfo"></span> (WhatsApp)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('contacto');
+    UI.mountFooter();
+    Cart.init();
+
+    // Renderizar info dinámica
+    document.getElementById('scheduleContainer').innerHTML = STORE.schedule.map(s => `
+      <div class="flex justify-between py-1 border-b border-border last:border-0">
+        <span>${s.day}</span>
+        <span class="font-medium">${s.hours}</span>
+      </div>
+    `).join('');
+    document.getElementById('locationInfo').innerHTML = `<p class="text-sm mb-1">${STORE.address}</p><p class="text-xs text-text-light">Santiago, Chile</p>`;
+    document.getElementById('phoneInfo').textContent = STORE.phone;
+    document.getElementById('emailInfo').textContent = STORE.email;
+    document.getElementById('whatsappInfo').textContent = STORE.whatsapp;
+
+    document.getElementById('contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      UI.toast("¡Mensaje enviado! Te responderemos pronto.", "success");
+      e.target.reset();
+    });
+  </script>
+
+</body>
+</html>

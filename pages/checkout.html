@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout · Atelier Boutique</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section class="bg-primary text-white py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="font-serif text-3xl md:text-4xl">Finalizar Compra</h1>
+    </div>
+  </section>
+
+  <section class="section-sm bg-cream">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div id="content"></div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('');
+    UI.mountFooter();
+    Cart.init();
+
+    const isGuest = UI.getQueryParam('guest') === '1';
+    const currentUser = Auth.getCurrentUser();
+
+    if (Cart.getDetailedItems().length === 0) {
+      document.getElementById('content').innerHTML = `
+        <div class="bg-white rounded-lg p-12 text-center">
+          <h2 class="font-serif text-2xl mb-3">No hay productos en tu carrito</h2>
+          <p class="text-text-light mb-6">Agrega productos antes de finalizar la compra.</p>
+          <a href="productos.html" class="btn btn-primary">Explorar catálogo</a>
+        </div>
+      `;
+    } else {
+      let formData = {
+        address: currentUser?.address?.street || "",
+        city: currentUser?.address?.city || "",
+        region: currentUser?.address?.region || "Región Metropolitana",
+        zip: currentUser?.address?.zip || "",
+        phone: currentUser?.phone || "",
+        notes: ""
+      };
+      let selectedShipping = SHIPPING_OPTIONS[0].id;
+      let selectedPayment = PAYMENT_METHODS[0].id;
+      let cardData = { number: "", name: "", expiry: "", cvv: "", installments: "1" };
+
+      function render() {
+        const items = Cart.getDetailedItems();
+        const subtotal = Cart.subtotal();
+        const shippingOpt = SHIPPING_OPTIONS.find(s => s.id === selectedShipping);
+        const shippingCost = (shippingOpt.free && subtotal >= 50000) ? 0 : shippingOpt.price;
+        const total = subtotal + shippingCost;
+
+        document.getElementById('content').innerHTML = `
+          ${!currentUser ? `
+            <div class="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6 flex justify-between items-center flex-wrap gap-3">
+              <p class="text-sm">¿Tienes cuenta? <a href="login.html?next=checkout.html" class="text-accent font-medium hover:underline">Inicia sesión</a> para usar tus datos guardados.</p>
+              ${isGuest ? '<span class="text-xs text-text-light italic">Comprando como invitado</span>' : ''}
+            </div>
+          ` : ''}
+
+          <form id="checkoutForm" class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+
+            <div class="space-y-6">
+              <!-- 1. DIRECCIÓN -->
+              <section class="bg-white rounded-lg p-6">
+                <div class="flex items-center gap-3 mb-5">
+                  <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">1</span>
+                  <h2 class="font-serif text-xl">Dirección de Envío</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="form-group md:col-span-2">
+                    <label class="label">Calle y número *</label>
+                    <input type="text" name="address" required class="input" value="${formData.address}" placeholder="Ej: Av. Apoquindo 4000, Depto 501">
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Ciudad *</label>
+                    <input type="text" name="city" required class="input" value="${formData.city}" placeholder="Santiago">
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Región *</label>
+                    <select name="region" required class="input">
+                      ${['Arica y Parinacota','Tarapacá','Antofagasta','Atacama','Coquimbo','Valparaíso','Metropolitana de Santiago','Libertador B. O\'Higgins','Maule','Ñuble','Biobío','La Araucanía','Los Ríos','Los Lagos','Aysén','Magallanes'].map(r => `<option ${formData.region === r ? 'selected' : ''}>${r}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Código Postal</label>
+                    <input type="text" name="zip" class="input" value="${formData.zip}" placeholder="7550000">
+                  </div>
+                  <div class="form-group">
+                    <label class="label">Teléfono de contacto *</label>
+                    <input type="tel" name="phone" required class="input" value="${formData.phone}" placeholder="+56 9 XXXX XXXX">
+                  </div>
+                  <div class="form-group md:col-span-2">
+                    <label class="label">Notas para la entrega (opcional)</label>
+                    <textarea name="notes" class="input" rows="2" placeholder="Ej: Dejar con conserje, llamar al llegar...">${formData.notes}</textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 2. TIPO DE ENVÍO -->
+              <section class="bg-white rounded-lg p-6">
+                <div class="flex items-center gap-3 mb-5">
+                  <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">2</span>
+                  <h2 class="font-serif text-xl">Tipo de Envío</h2>
+                </div>
+                <div class="space-y-3" id="shippingOptions">
+                  ${SHIPPING_OPTIONS.map(opt => {
+                    const cost = (opt.free && subtotal >= 50000) ? 0 : opt.price;
+                    const isFree = cost === 0;
+                    return `
+                      <label class="flex items-start gap-3 border border-border rounded-lg p-4 cursor-pointer hover:border-accent transition ${selectedShipping === opt.id ? 'border-accent bg-accent/5' : ''}">
+                        <input type="radio" name="shipping" value="${opt.id}" ${selectedShipping === opt.id ? 'checked' : ''} class="mt-1 accent-accent">
+                        <div class="flex-1">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <div class="font-medium">${opt.name}</div>
+                              <div class="text-xs text-text-light mt-1">${opt.description}</div>
+                            </div>
+                            <div class="font-semibold ${isFree ? 'text-green-600' : ''}">
+                              ${isFree ? 'GRATIS' : UI.formatCLP(cost)}
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </section>
+
+              <!-- 3. MÉTODO DE PAGO -->
+              <section class="bg-white rounded-lg p-6">
+                <div class="flex items-center gap-3 mb-5">
+                  <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">3</span>
+                  <h2 class="font-serif text-xl">Medio de Pago</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                  ${PAYMENT_METHODS.map(method => `
+                    <label class="border border-border rounded-lg p-4 cursor-pointer hover:border-accent transition text-center ${selectedPayment === method.id ? 'border-accent bg-accent/5' : ''}">
+                      <input type="radio" name="payment" value="${method.id}" ${selectedPayment === method.id ? 'checked' : ''} class="hidden">
+                      <div class="mb-2 flex justify-center">
+                        ${method.id === 'tarjeta' ? '<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-accent"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M6 16h4"/></svg>' : ''}
+                        ${method.id === 'transferencia' ? '<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-accent"><path d="M3 10h18M5 6l-2 4v10h18V10l-2-4M3 14h18"/></svg>' : ''}
+                        ${method.id === 'webpay' ? '<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-accent"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5M16 12h.01"/></svg>' : ''}
+                      </div>
+                      <div class="font-medium text-sm">${method.name}</div>
+                      <div class="text-xs text-text-light mt-1">${method.description}</div>
+                    </label>
+                  `).join('')}
+                </div>
+
+                ${selectedPayment === 'tarjeta' ? `
+                  <div class="bg-cream rounded-lg p-4 space-y-4">
+                    <div class="form-group">
+                      <label class="label">Número de tarjeta *</label>
+                      <input type="text" id="cardNumber" maxlength="19" required class="input" placeholder="1234 5678 9012 3456" value="${cardData.number}">
+                    </div>
+                    <div class="form-group">
+                      <label class="label">Nombre del titular *</label>
+                      <input type="text" id="cardName" required class="input" placeholder="Como aparece en la tarjeta" value="${cardData.name}">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="form-group">
+                        <label class="label">Vencimiento *</label>
+                        <input type="text" id="cardExpiry" maxlength="5" required class="input" placeholder="MM/AA" value="${cardData.expiry}">
+                      </div>
+                      <div class="form-group">
+                        <label class="label">CVV *</label>
+                        <input type="text" id="cardCvv" maxlength="4" required class="input" placeholder="123" value="${cardData.cvv}">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="label">Cuotas</label>
+                      <select id="cardInstallments" class="input">
+                        <option value="1">1 cuota de ${UI.formatCLP(total)}</option>
+                        <option value="3">3 cuotas de ${UI.formatCLP(Math.round(total/3))} sin interés</option>
+                        <option value="6">6 cuotas de ${UI.formatCLP(Math.round(total/6))} sin interés</option>
+                      </select>
+                    </div>
+                  </div>
+                ` : selectedPayment === 'transferencia' ? `
+                  <div class="bg-cream rounded-lg p-4 text-sm">
+                    <p class="mb-2">Recibirás los datos bancarios al confirmar el pedido. Tu compra será procesada una vez confirmada la transferencia (24-48h hábiles).</p>
+                    <p class="text-xs text-text-light">Datos: BancoEstado · Cta: 123-45678-90 · RUT: 76.123.456-7 · Atelier Boutique SpA</p>
+                  </div>
+                ` : `
+                  <div class="bg-cream rounded-lg p-4 text-sm">
+                    <p>Serás redirigido a Webpay para completar el pago de forma segura.</p>
+                  </div>
+                `}
+              </section>
+            </div>
+
+            <!-- RESUMEN -->
+            <aside class="bg-white rounded-lg p-6 h-fit lg:sticky lg:top-32">
+              <h3 class="font-serif text-xl mb-4">Tu Pedido</h3>
+              <div class="space-y-3 pb-4 border-b border-border max-h-64 overflow-y-auto">
+                ${items.map(item => `
+                  <div class="flex gap-3">
+                    <img src="${item.product.images[0]}" alt="${item.product.name}" class="w-14 h-16 object-cover rounded">
+                    <div class="flex-1 text-sm">
+                      <p class="font-medium">${item.product.name}</p>
+                      <p class="text-xs text-text-light">${item.color} · ${item.size} · x${item.qty}</p>
+                    </div>
+                    <div class="text-sm font-medium">${UI.formatCLP(item.product.price * item.qty)}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="space-y-2 text-sm py-4 border-b border-border">
+                <div class="flex justify-between"><span class="text-text-light">Subtotal</span><span>${UI.formatCLP(subtotal)}</span></div>
+                <div class="flex justify-between">
+                  <span class="text-text-light">Envío</span>
+                  <span class="${shippingCost === 0 ? 'text-green-600 font-medium' : ''}">${shippingCost === 0 ? 'GRATIS' : UI.formatCLP(shippingCost)}</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-baseline py-4 text-lg font-semibold">
+                <span>Total</span>
+                <span>${UI.formatCLP(total)}</span>
+              </div>
+              <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
+                Confirmar Compra
+              </button>
+              <p class="text-xs text-text-light text-center mt-3">
+                Al confirmar aceptas nuestros <a href="terminos.html" class="text-accent hover:underline">términos y condiciones</a>.
+              </p>
+            </aside>
+          </form>
+        `;
+        attachListeners();
+      }
+
+      function attachListeners() {
+        // Inputs
+        document.querySelectorAll('[name="address"],[name="city"],[name="region"],[name="zip"],[name="phone"],[name="notes"]').forEach(input => {
+          input.addEventListener('input', e => {
+            formData[e.target.name] = e.target.value;
+          });
+        });
+
+        // Card fields
+        const cardNumber = document.getElementById('cardNumber');
+        if (cardNumber) {
+          cardNumber.addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+            e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+            cardData.number = e.target.value;
+          });
+        }
+        const cardExpiry = document.getElementById('cardExpiry');
+        if (cardExpiry) {
+          cardExpiry.addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+            if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2);
+            e.target.value = v;
+            cardData.expiry = v;
+          });
+        }
+        ['cardName','cardCvv','cardInstallments'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', e => cardData[id.replace('card','').toLowerCase()] = e.target.value);
+        });
+
+        // Shipping
+        document.querySelectorAll('[name="shipping"]').forEach(r => {
+          r.addEventListener('change', e => { selectedShipping = e.target.value; render(); });
+        });
+
+        // Payment
+        document.querySelectorAll('[name="payment"]').forEach(r => {
+          r.addEventListener('change', e => { selectedPayment = e.target.value; render(); });
+        });
+
+        // Submit
+        document.getElementById('checkoutForm').addEventListener('submit', handleSubmit);
+      }
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        const shippingOpt = SHIPPING_OPTIONS.find(s => s.id === selectedShipping);
+        const subtotal = Cart.subtotal();
+        const shippingCost = (shippingOpt.free && subtotal >= 50000) ? 0 : shippingOpt.price;
+        const paymentMethod = PAYMENT_METHODS.find(p => p.id === selectedPayment);
+
+        // Si es guest, no podemos crear pedido real (no hay user). Para demo: forzar login suave.
+        if (!currentUser && isGuest) {
+          // Crear un user guest temporal solo para esta compra
+          const guestId = "guest_" + Date.now();
+          const allOrders = Orders.getAll();
+          const order = {
+            id: Orders._generateId(),
+            userId: guestId,
+            items: Cart.getDetailedItems().map(item => ({
+              productId: item.productId,
+              name: item.product.name,
+              qty: item.qty,
+              size: item.size,
+              color: item.color,
+              price: item.product.price,
+              image: item.product.images[0]
+            })),
+            shipping: {
+              address: formData.address,
+              city: formData.city,
+              region: formData.region,
+              zip: formData.zip,
+              type: shippingOpt.id,
+              typeName: shippingOpt.name,
+              cost: shippingCost
+            },
+            payment: {
+              method: paymentMethod.id,
+              methodName: paymentMethod.name,
+              last4: cardData.number.replace(/\s/g,'').slice(-4) || null
+            },
+            subtotal,
+            shippingCost,
+            total: subtotal + shippingCost,
+            status: "procesando",
+            guest: true,
+            createdAt: new Date().toISOString()
+          };
+          allOrders.push(order);
+          Orders._save(allOrders);
+          Cart.clear();
+          sessionStorage.setItem("lastOrderId", order.id);
+          setTimeout(() => location.href = "confirmacion.html", 800);
+          return;
+        }
+
+        // Usuario logueado
+        // Primero guardar la dirección en el perfil si está logueado
+        if (currentUser) {
+          Auth.updateProfile({
+            phone: formData.phone,
+            address: {
+              street: formData.address,
+              city: formData.city,
+              region: formData.region,
+              zip: formData.zip
+            }
+          });
+        }
+
+        const result = Orders.create({
+          shipping: {
+            address: formData.address,
+            city: formData.city,
+            region: formData.region,
+            zip: formData.zip,
+            type: shippingOpt.id,
+            typeName: shippingOpt.name,
+            cost: shippingCost
+          },
+          payment: {
+            method: paymentMethod.id,
+            methodName: paymentMethod.name,
+            last4: cardData.number.replace(/\s/g,'').slice(-4) || null
+          }
+        });
+
+        if (result.success) {
+          sessionStorage.setItem("lastOrderId", result.order.id);
+          setTimeout(() => location.href = "confirmacion.html", 800);
+        } else {
+          UI.toast(result.error, "error");
+          btn.disabled = false;
+          btn.textContent = 'Confirmar Compra';
+        }
+      }
+
+      render();
+    }
+  </script>
+
+</body>
+</html>

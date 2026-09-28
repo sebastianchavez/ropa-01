@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros · Atelier Boutique</title>
+  <meta name="description" content="Conoce la historia, valores y equipo detrás de Atelier Boutique.">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#0a0a0a', accent: '#c9a961', cream: '#faf7f2' },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['Playfair Display','Georgia','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <!-- HERO -->
+  <section class="hero" style="height: 60vh; min-height: 400px;">
+    <div class="hero-bg" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1920&q=85&auto=format&fit=crop');"></div>
+    <div class="relative max-w-5xl mx-auto px-4 text-center text-white">
+      <p class="uppercase tracking-widest text-sm text-accent mb-3">Nuestra Historia</p>
+      <h1 class="font-serif text-4xl md:text-6xl mb-4">Sobre Nosotros</h1>
+      <p class="text-lg max-w-2xl mx-auto opacity-95">Moda consciente, estilo atemporal y un equipo que ama lo que hace.</p>
+    </div>
+  </section>
+
+  <!-- HISTORIA -->
+  <section class="section bg-cream">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="section-divider !mx-0"></div>
+          <h2 class="font-serif text-3xl md:text-4xl mb-4 text-left">Una boutique con propósito</h2>
+          <p class="text-text-light leading-relaxed mb-4">
+            Atelier Boutique nació en 2018 en el corazón de Vitacura, del sueño de crear un espacio donde la moda se encontrara con la sostenibilidad y la calidad artesanal.
+          </p>
+          <p class="text-text-light leading-relaxed mb-4">
+            Tras años recorriendo ateliers en París, Milán y Buenos Aires, nuestra fundadora Isidora Montt decidió traer a Chile una nueva forma de entender la moda: prendas que trascienden tendencias, fabricadas con materiales nobles y en condiciones justas.
+          </p>
+          <p class="text-text-light leading-relaxed">
+            Hoy, somos una de las boutiques más queridas del país, reconocidos por nuestra curaduría única y por la experiencia cálida que ofrecemos a cada visitante.
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80&auto=format&fit=crop" alt="Boutique" class="rounded-lg aspect-square object-cover">
+          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80&auto=format&fit=crop" alt="Moda" class="rounded-lg aspect-square object-cover mt-8">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALORES -->
+  <section class="section bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="section-divider"></div>
+        <h2 class="section-title">Nuestros Valores</h2>
+        <p class="section-subtitle">Los principios que guían cada decisión que tomamos</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto mb-4 bg-accent/10 rounded-full flex items-center justify-center">
+            <svg width="32" height="32" fill="none" stroke="#c9a961" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3 class="font-serif text-xl mb-2">Sostenibilidad</h3>
+          <p class="text-text-light text-sm">Trabajamos con materiales certificados y proveedores que comparten nuestro compromiso con el planeta.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto mb-4 bg-accent/10 rounded-full flex items-center justify-center">
+            <svg width="32" height="32" fill="none" stroke="#c9a961" stroke-width="1.5" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl mb-2">Calidad</h3>
+          <p class="text-text-light text-sm">Cada prenda pasa por un proceso de selección riguroso para asegurar que dure mucho más de una temporada.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto mb-4 bg-accent/10 rounded-full flex items-center justify-center">
+            <svg width="32" height="32" fill="none" stroke="#c9a961" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+          </div>
+          <h3 class="font-serif text-xl mb-2">Comunidad</h3>
+          <p class="text-text-light text-sm">Creemos en relaciones a largo plazo: con nuestros clientes, nuestros proveedores y nuestro equipo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EQUIPO -->
+  <section class="section bg-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="section-divider"></div>
+        <h2 class="section-title">Nuestro Equipo</h2>
+        <p class="section-subtitle">Las personas que dan vida a Atelier cada día</p>
+      </div>
+      <div id="teamGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- CIFRAS -->
+  <section class="section bg-primary text-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div>
+          <div class="text-4xl md:text-5xl font-serif font-bold text-accent mb-2">8</div>
+          <p class="text-sm text-gray-300">Años de experiencia</p>
+        </div>
+        <div>
+          <div class="text-4xl md:text-5xl font-serif font-bold text-accent mb-2">15k+</div>
+          <p class="text-sm text-gray-300">Clientes felices</p>
+        </div>
+        <div>
+          <div class="text-4xl md:text-5xl font-serif font-bold text-accent mb-2">200+</div>
+          <p class="text-sm text-gray-300">Marcas curadas</p>
+        </div>
+        <div>
+          <div class="text-4xl md:text-5xl font-serif font-bold text-accent mb-2">4.9</div>
+          <p class="text-sm text-gray-300">Calificación promedio</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script src="../assets/js/reviews.js"></script>
+  <script>
+    initMockData();
+    UI.mountNavbar('nosotros');
+    UI.mountFooter();
+    Cart.init();
+
+    document.getElementById('teamGrid').innerHTML = TEAM.map(member => `
+      <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition group">
+        <div class="aspect-square overflow-hidden bg-cream-dark">
+          <img src="${member.image}" alt="${member.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+        </div>
+        <div class="p-5">
+          <h3 class="font-serif text-lg mb-1">${member.name}</h3>
+          <p class="text-xs uppercase tracking-wider text-accent mb-3">${member.role}</p>
+          <p class="text-sm text-text-light leading-relaxed">${member.bio}</p>
+        </div>
+      </div>
+    `).join('');
+  </script>
+
+</body>
+</html>
